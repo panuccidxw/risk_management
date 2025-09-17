@@ -28,45 +28,33 @@ bvn = multivariate_normal(mean=mean, cov=cov)
 # Using a numerical integration approach
 from scipy import integrate
 
-# double integrate over the region (-np.inf, Z_x] × (-np.inf, Z_y]
-result, _ = integrate.dblquad(
-    lambda y, x: bvn.pdf([x, y]),
-    -np.inf, Z_x,
-    -np.inf, Z_y)
+# method 1: manual integration with scipy.integrate.dblquad
+result1, _ = integrate.dblquad(lambda y, x: bvn.pdf([x, y]), -np.inf, Z_x, -np.inf, Z_y)
+print(result1)
 
-print(result)
+# method2: scipy.stats.multivariate_normal.cdf
+result2 = bvn.cdf([Z_x, Z_y])  # P(X ≤ Z_x, Y ≤ Z_y)
+print(result2)
 
-# alternatively, use Monte Carlo method to approximate
+# method3: use Monte Carlo method to approximate integration, can be inaccurate
 def bivariate_normal_cdf(x, y, rho):
 
     if rho == 0:
         return norm.cdf(x) * norm.cdf(y)
-
-    # For simplicity, using Monte Carlo approximation
     n_samples = 100000
     samples = np.random.multivariate_normal(
         mean=[0, 0],
         cov=[[1, rho], [rho, 1]],
-        size=n_samples
-    )
+        size=n_samples)
 
-    prob = np.mean((samples[:, 0] <= x) & (samples[:, 1] <= y))
-    return prob
+    result = np.mean((samples[:, 0] <= x) & (samples[:, 1] <= y))
+    return result
 
-result1 = bivariate_normal_cdf(Z_x, Z_y, rho)
-print(result1)
+result3 = bivariate_normal_cdf(Z_x, Z_y, rho)
+print(result3)
 
-from scipy.stats import multivariate_normal
-
-mean = [0, 0]
-cov = [[1, rho], [rho, 1]]
-
-bvn = multivariate_normal(mean=mean, cov=cov)
-prob = bvn.cdf([Z_x, Z_y])  # P(X ≤ Z_x, Y ≤ Z_y)
-print(prob)
-
+# method4: use statsmodels built-in
 from statsmodels.distributions.copula.api import GaussianCopula
-
-cop = GaussianCopula(rho)  # correlation matrix internally
-prob = cop.cdf([F_x, F_y])  # using uniform marginals
-print(prob)
+cop = GaussianCopula(rho)
+result4 = cop.cdf([F_x, F_y])
+print(result4)
