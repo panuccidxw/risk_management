@@ -1,4 +1,9 @@
-
+'''
+Given two assets x and y with their marginal distribution and correlation for return
+Find certain joint probability event, like both assets incurring loss
+the core idea is to make use of bivariate normal distribution's elegant ability to incorporate correlation
+between components
+'''
 
 import scipy
 from scipy.stats import norm,multivariate_normal
